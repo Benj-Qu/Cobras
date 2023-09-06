@@ -1,0 +1,169 @@
+use std::str::FromStr;
+use crate::syntax::{FunDecl, SurfProg, SurfFunDecl, Exp, Prim1, Prim2};
+use crate::span::Span1;
+
+grammar;
+
+pub Prog: SurfProg<Span1> = Exp;
+
+FUNDEFS: Exp<Span1> = {
+    <l: @L> <funs: (FunDecl "and")*> <last: FunDecl> "in" <body: Boxed<Exp>> <r: @R> => {
+        let mut decls: Vec<SurfFunDecl<Span1>> = funs.into_iter().map(|(decl, _)| decl).collect();
+        decls.push(last);
+        Exp::FunDefs { decls, body, ann: Span1 { start_ix: l, end_ix: r} }
+    }
+}
+
+CLASSDEF: Exp<Span1> = {
+    <l: @L> "class" <name: Id> "{" <es: Comma<Id>> "}" ":" <funs: (FunDecl "and")*> <last: FunDecl> "in" <body: Boxed<Exp>> <r: @R> => {
+        let mut decls: Vec<SurfFunDecl<Span1>> = funs.into_iter().map(|(decl, _)| decl).collect();
+        decls.push(last);
+        Exp::ClassDef { name: name, fields: es, methods: decls, body: body, ann: Span1 { start_ix: l, end_ix: r}}
+    }
+}
+
+Boxed<T>: Box<T> = {
+    <t: T> => Box::new(t)
+}
+
+Params: Vec<String> = Comma<Id>;
+
+FunDecl: SurfFunDecl<Span1> = {
+    <l: @L> "def" <name: Id> "(" <parameters: Params> ")" ":" <body: Exp> <r: @R> =>
+        FunDecl { name, parameters, body, ann: Span1 { start_ix: l, end_ix: r}  }
+}
+
+pub Exp: Exp<Span1> = {
+    IF,
+    LET,
+    FUNDEFS,
+    CLASSDEF,
+    SEQ,
+}
+
+IF: Exp<Span1> = {
+    <l: @L> "if" <cond: Boxed<Exp>> ":" <thn: Boxed<Exp>> "else" ":" <els:Boxed<Exp>> <r: @R> =>
+        Exp::If { cond, thn, els, ann: Span1 { start_ix: l, end_ix: r }},
+}
+
+LET: Exp<Span1> = {
+    <l: @L> "let" <bindings:Bindings> "in" <body: Boxed<Exp>> <r: @R> => Exp::Let { bindings, body, ann: Span1 { start_ix: l, end_ix: r }},
+}
+
+SEQ: Exp<Span1> = {
+    <l: @L> <e1: BinOps> ";" <e2: Exp> <r: @R> =>
+        Exp::Semicolon { e1: Box::new(e1), e2: Box::new(e2), ann: Span1 { start_ix: l, end_ix: r } },
+    BinOps
+}
+
+LAssoc<Op, Next>: Exp<Span1> = {
+    <l: @L> <e1: Boxed<LAssoc<Op,Next>>> <op: Op> <e2: Boxed<Next>> <r: @R> => Exp::Prim2(op, e1, e2, Span1 { start_ix: l, end_ix: r }),
+    Next
+}
+
+RAssoc<Op, Next>: Exp<Span1> = {
+    <l: @L> <e1: Boxed<Next>> <op: Op> <e2: Boxed<RAssoc<Op, Next>>> <r: @R> => Exp::Prim2(op, e1, e2, Span1 { start_ix: l, end_ix: r }),
+    Next
+}
+
+BinOps = LogExp;
+LogExp = RAssoc<Log, CmpExp>;
+CmpExp = LAssoc<Cmp, Sum>;
+Sum = LAssoc<PlusMinus, Product>;
+Product = LAssoc<Times, NotExp>;
+
+PlusMinus: Prim2 = {
+    "+" => Prim2::Add,
+    "-" => Prim2::Sub,
+}
+
+Times: Prim2 = {
+    "*" => Prim2::Mul
+}
+
+Log: Prim2 = {
+    "&&" => Prim2::And,
+    "||" => Prim2::Or,
+}
+
+Cmp: Prim2 = {
+    "<" => Prim2::Lt,
+    "<=" => Prim2::Le,
+    ">" => Prim2::Gt,
+    ">=" => Prim2::Ge,
+    "==" => Prim2::Eq,
+    "!=" => Prim2::Neq,
+}
+
+NotExp: Exp<Span1> = {
+    <l: @L> "!" <e: Boxed<BaseExp>> <r: @R> => Exp::Prim1(Prim1::Not, e, Span1 { start_ix: l, end_ix: r }),
+    ArrExp
+}
+
+ArrExp: Exp<Span1> = {
+    BaseExp,
+    <l:@L> <a: Boxed<ArrExp>> "[" <e: Boxed<Exp>> "]" <r:@R> => Exp::Prim2(Prim2::ArrayGet, a, e, Span1 { start_ix: l, end_ix: r }),
+    <l:@L> <array: Boxed<ArrExp>> "[" <index: Boxed<Exp>> "]" ":=" <new_value: Boxed<BaseExp>> <r:@R> => Exp::ArraySet{ ann: Span1 { start_ix: l, end_ix: r }, array, index, new_value },
+    <l:@L> <x: Id> ":=" <e: Boxed<BaseExp>> <r: @R> => Exp::SetField{ field: x, value: e, ann: Span1 { start_ix: l, end_ix: r } },
+}
+
+BaseExp: Exp<Span1> = {
+    <l: @L> <x: Id> <r: @R> => Exp::Var(x, Span1 { start_ix: l, end_ix: r }),
+    <l: @L> <b: Bool> <r: @R> => Exp::Bool(b, Span1 { start_ix: l, end_ix: r }),
+    <l: @L> <n: Num> <r:@R> => Exp::Num(n, Span1 { start_ix: l, end_ix: r }),
+    <l: @L> "new" <class: Id> "(" <es: Comma<Exp>> ")" <r:@R> => Exp::Object{class: class, fields: es, ann: Span1 { start_ix: l, end_ix: r } },
+    <l:@L> <p:Prim1> "(" <e: Boxed<Exp>> ")" <r:@R> => Exp::Prim1(p, e, Span1 { start_ix: l, end_ix: r }),
+    "(" <e: Exp> ")" => e,
+    <l: @L> <x: Boxed<BaseExp>> "(" <es: Comma<Exp>> ")" <r: @R> => Exp::Call(x, es, Span1 { start_ix: l, end_ix: r }),
+    <l: @L> <obj: Boxed<BaseExp>> "." <method: Id> "(" <es: Comma<Exp>> ")" <r: @R> => Exp::CallMethod {object: obj, method: method, args: es, ann: Span1 { start_ix: l, end_ix: r }},
+    <l: @L> LAMBDA <parameters: Params> ":" <body: Boxed<Exp>> "end" <r: @R>  => Exp::Lambda { parameters, body, ann: Span1 { start_ix: l, end_ix: r } },
+    <l:@L> "[" <es: Comma<Exp>> "]" <r:@R> => Exp::Array(es, Span1 { start_ix: l, end_ix: r }),
+}
+
+LAMBDA: () = {
+    "lambda",
+    "λ",
+}
+
+Comma<T>: Vec<T> = {
+    <mut v: (<T> ",")*> <last: T?> => {
+        match last {
+            None => { },
+            Some(t) => { v.push(t); }
+        };
+        v
+    }
+}
+
+Prim1: Prim1 = {
+    "add1" => Prim1::Add1,
+    "sub1" => Prim1::Sub1,
+    "print" => Prim1::Print,
+    "isnum" => Prim1::IsNum,
+    "isbool" => Prim1::IsBool,
+    "isarray" => Prim1::IsArray,
+    "length" => Prim1::Length,
+    "isfun" => Prim1::IsFun,
+}
+
+Array<T>: Vec<T> = {
+    "[" <ts: Comma<T>> "]" => ts
+}
+
+Bindings: Vec<(String, Exp<Span1>)> = {
+    <b: BindExp> "=" <e: Exp> => vec![(b, e)],
+    <mut bs:Bindings> "," <b: BindExp> "=" <e: Exp> => {
+        bs.push((b, e));
+        bs
+    }
+}
+
+BindExp: String = Id;
+
+Num: i64 = <s:r"[+-]?[0-9]+"> => i64::from_str(s).unwrap();
+Id: String = <s:r"[a-zA-Z][a-zA-Z0-9_]*"> => String::from(s);
+Bool: bool = {
+    "true" => true,
+    "false" => false,
+}
+

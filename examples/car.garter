@@ -1,0 +1,11 @@
+class Car { speed } :
+    def dangerous():
+        speed > 70
+    and 
+    def printdistance(time):
+        print(time * speed)
+in 
+let car = new Car(80)
+in 
+car.printdistance(100);
+car.dangerous()

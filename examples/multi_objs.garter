@@ -1,0 +1,8 @@
+class Dummy { dummy } :
+    def SetDummy(x):
+        dummy := x
+    and def GetDummy():
+        dummy
+in let dum1 = new Dummy(1), dum2 = new Dummy(2)
+in dum1.SetDummy(483);
+dum2.GetDummy()

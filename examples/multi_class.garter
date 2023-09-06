@@ -1,0 +1,19 @@
+class Dummy1 { dummy } :
+    def SetDummy1(x):
+        dummy := x
+    and def GetDummy1():
+        dummy
+in 
+class Dummy2 { dummy } :
+    def SetDummy2(x):
+        dummy := x
+    and def GetDummy2():
+        dummy
+in
+let dum1 = new Dummy1(0)
+in 
+dum1.SetDummy1(483);
+let dum2 = new Dummy2(0)
+in
+dum2.SetDummy2(477);
+dum2.GetDummy2()

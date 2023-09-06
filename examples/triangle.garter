@@ -1,0 +1,23 @@
+class Triangle { a, b, c } :
+    def Valid():
+        (a + b > c) && (b + c > a) && (c + a > b)
+    and 
+    def GetPerimeter():
+        a + b + c
+in 
+let tr = new Triangle(5, 12, 13)
+in 
+print(tr.Valid());
+print(tr.GetPerimeter());
+class RightTr {a, b} :
+    def SetB(new_b):
+        b := new_b
+    and
+    def DoubleArea():
+        a * b
+in
+let tr = new RightTr(5, 12)
+in
+print(tr.DoubleArea());
+tr.SetB(6);
+tr.DoubleArea()

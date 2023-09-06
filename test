@@ -1,0 +1,120 @@
+SeqProg { 
+class: {"Dummy_14": ClassInfo { id: 1, fieldsize: 1 }}, 
+funs: [], 
+methods: [
+    MethodDecl { 
+        class: 1, 
+        fundecl: FunDecl { 
+            name: "Dummy_14_SetDummy_2", 
+            parameters: ["env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4", "#Dummy_14_array", "#x_2"], 
+            body: Let { 
+                var: "Dummy_14_SetDummy_2", 
+                bound_exp: Prim2(ArrayGet, Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), Num(0), 0), 
+                body: Let { 
+                    var: "Dummy_14_GetDummy_4", 
+                    bound_exp: Prim2(ArrayGet, Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), Num(1), 1), 
+                    body: ArraySet { 
+                        array: Var("#Dummy_14_array"), 
+                        index: Num(0), 
+                        new_value: Var("#x_2"), 
+                        ann: 2 
+                    }, 
+                    ann: 3 
+                }, 
+                ann: 4 
+            }, 
+            ann: 5 
+        } 
+    }, 
+    MethodDecl { 
+        class: 1, 
+        fundecl: FunDecl { 
+            name: "Dummy_14_GetDummy_4", 
+            parameters: ["env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4", "#Dummy_14_array"], 
+            body: Let { 
+                var: "Dummy_14_SetDummy_2", 
+                bound_exp: Prim2(ArrayGet, Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), Num(0), 6), 
+                body: Let { 
+                    var: "Dummy_14_GetDummy_4", 
+                    bound_exp: Prim2(ArrayGet, Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), Num(1), 7), 
+                    body: Prim2(ArrayGet, Var("#Dummy_14_array"), Num(0), 8), 
+                    ann: 9 
+                }, 
+                ann: 10 
+            }, 
+            ann: 11 
+        } 
+    }
+    ], 
+    main: Let { 
+        var: "env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4", 
+        bound_exp: Array([Num(0), Num(0)], 12), 
+        body: Let { 
+            var: "Dummy_14_SetDummy_2", 
+            bound_exp: MakeClosure { 
+                arity: 2, 
+                label: "Dummy_14_SetDummy_2", 
+                env: Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), 
+                ann: 13 
+            }, 
+            body: Let { 
+                var: "Dummy_14_GetDummy_4", 
+                bound_exp: MakeClosure { 
+                    arity: 1, 
+                    label: "Dummy_14_GetDummy_4", 
+                    env: Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), 
+                    ann: 14 
+                }, 
+                body: Let { 
+                    var: "#dummy_48", 
+                    bound_exp: ArraySet { 
+                        array: Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), 
+                        index: Num(0), 
+                        new_value: Var("Dummy_14_SetDummy_2"), 
+                        ann: 15 
+                    }, 
+                    body: Let { 
+                        var: "#dummy_47", 
+                        bound_exp: ArraySet { 
+                            array: Var("env_Dummy_14_SetDummy_2_Dummy_14_GetDummy_4"), 
+                            index: Num(1), 
+                            new_value: Var("Dummy_14_GetDummy_4"), 
+                            ann: 16 
+                        }, 
+                        body: Let { 
+                            var: "#dum_13", 
+                            bound_exp: Object { 
+                                class: "Dummy_14", 
+                                fields: [Num(0)], 
+                                ann: 17 
+                            }, 
+                            body: Let { 
+                                var: "#dummy_45", 
+                                bound_exp: CallMethod { 
+                                    object: Var("#dum_13"), 
+                                    method: {"Dummy_14": "Dummy_14_SetDummy_2"}, 
+                                    args: [Num(483)], 
+                                    ann: 18 
+                                }, 
+                                body: CallMethod { 
+                                    object: Var("#dum_13"), 
+                                    method: {"Dummy_14": "Dummy_14_GetDummy_4"}, 
+                                    args: [], 
+                                    ann: 19 
+                                }, 
+                                ann: 20 
+                            }, 
+                            ann: 21 
+                        }, 
+                        ann: 22 
+                    }, 
+                    ann: 23 
+                }, 
+                ann: 24 
+            }, 
+            ann: 25 
+        }, 
+        ann: 26 
+    }, 
+    ann: 27 
+}
